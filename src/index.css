@@ -1,0 +1,154 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens follow Apple's Human Interface Guidelines for macOS:
+ * system font, semantic label colors, a single restrained accent,
+ * grouped content on a neutral window background, and visible focus rings.
+ */
+:root {
+  color-scheme: light;
+  --window: #f5f5f7;
+  --sidebar: #ececef;
+  --surface: #ffffff;
+  --surface-2: #f9f9fb;
+  --fill: rgba(120, 120, 128, 0.12);
+  --fill-strong: rgba(120, 120, 128, 0.2);
+  --separator: rgba(60, 60, 67, 0.14);
+  --separator-strong: rgba(60, 60, 67, 0.24);
+  --label: #1d1d1f;
+  --label-2: #5f5f66;
+  --label-3: #86868b;
+  --accent: #0a7c86;
+  --accent-hover: #086a73;
+  --accent-soft: rgba(10, 124, 134, 0.1);
+  --accent-text: #08656d;
+  --focus: rgba(10, 124, 134, 0.45);
+  --green: #1f8a3b;
+  --green-soft: rgba(52, 199, 89, 0.14);
+  --orange: #b25000;
+  --orange-soft: rgba(255, 149, 0, 0.15);
+  --red: #c4271d;
+  --red-soft: rgba(255, 59, 48, 0.11);
+  --blue: #0064d1;
+  --blue-soft: rgba(0, 122, 255, 0.1);
+  --highlight: rgba(255, 204, 0, 0.42);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.05), 0 1px 1px rgba(0, 0, 0, 0.03);
+  --shadow-raised: 0 8px 28px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --window: #1c1c1e;
+    --sidebar: #232326;
+    --surface: #2a2a2d;
+    --surface-2: #242427;
+    --fill: rgba(120, 120, 128, 0.24);
+    --fill-strong: rgba(120, 120, 128, 0.36);
+    --separator: rgba(84, 84, 88, 0.6);
+    --separator-strong: rgba(110, 110, 115, 0.75);
+    --label: #f5f5f7;
+    --label-2: #b4b4ba;
+    --label-3: #8d8d93;
+    /* Darker fill so white button text keeps at least 4.5:1 contrast. */
+    --accent: #147d86;
+    --accent-hover: #198c96;
+    --accent-soft: rgba(63, 182, 191, 0.16);
+    --accent-text: #6fd0d7;
+    --focus: rgba(63, 182, 191, 0.55);
+    --green: #4cd068;
+    --green-soft: rgba(48, 209, 88, 0.18);
+    --orange: #ffaa40;
+    --orange-soft: rgba(255, 159, 10, 0.18);
+    --red: #ff6961;
+    --red-soft: rgba(255, 69, 58, 0.18);
+    --blue: #5eaaff;
+    --blue-soft: rgba(10, 132, 255, 0.18);
+    --highlight: rgba(255, 214, 10, 0.35);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-raised: 0 8px 28px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4);
+  }
+}
+
+@theme inline {
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Monaco, monospace;
+  --color-window: var(--window);
+  --color-sidebar: var(--sidebar);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-fill: var(--fill);
+  --color-fill-strong: var(--fill-strong);
+  --color-separator: var(--separator);
+  --color-separator-strong: var(--separator-strong);
+  --color-label: var(--label);
+  --color-label-2: var(--label-2);
+  --color-label-3: var(--label-3);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-text: var(--accent-text);
+  --color-green: var(--green);
+  --color-green-soft: var(--green-soft);
+  --color-orange: var(--orange);
+  --color-orange-soft: var(--orange-soft);
+  --color-red: var(--red);
+  --color-red-soft: var(--red-soft);
+  --color-blue: var(--blue);
+  --color-blue-soft: var(--blue-soft);
+  --shadow-card: var(--shadow);
+  --shadow-raised: var(--shadow-raised);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--window);
+  color: var(--label);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* One consistent, clearly visible keyboard focus ring. */
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 1px;
+  border-radius: 6px;
+}
+
+::selection {
+  background: var(--accent-soft);
+}
+
+mark.evidence {
+  background: var(--highlight);
+  color: inherit;
+  border-radius: 3px;
+  padding: 0 1px;
+  box-shadow: 0 0 0 2px var(--highlight);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .fade-in {
+    animation: fade-in 160ms ease-out;
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(2px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
