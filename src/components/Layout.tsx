@@ -15,7 +15,9 @@ const NAV: { to: string; label: string; icon: IconName; end?: boolean }[] = [
 function navClass({ isActive }: { isActive: boolean }) {
   return cx(
     "flex h-8 items-center gap-2.5 rounded-md px-2.5 text-[13px] transition-colors",
-    isActive ? "bg-fill-strong font-semibold text-label" : "text-label hover:bg-fill",
+    isActive
+      ? "bg-accent-soft font-semibold text-accent-text shadow-[inset_3px_0_0_var(--sun)]"
+      : "text-label hover:bg-fill",
   );
 }
 
@@ -29,7 +31,7 @@ function Sidebar() {
       <div className="flex items-center gap-2.5 px-4 pt-5 pb-4">
         <img src="/favicon.svg" alt="" className="size-8 rounded-[7px]" />
         <div className="min-w-0 leading-tight">
-          <p className="truncate text-[13px] font-semibold text-label">CommHealth</p>
+          <p className="truncate font-display text-[15px] font-extrabold text-accent-text">CommHealth</p>
           <p className="truncate text-[12px] text-label-2">Documentation Center</p>
         </div>
       </div>

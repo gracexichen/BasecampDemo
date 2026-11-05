@@ -1,28 +1,30 @@
 @import "tailwindcss";
 
 /*
- * Design tokens follow Apple's Human Interface Guidelines for macOS:
- * system font, semantic label colors, a single restrained accent,
- * grouped content on a neutral window background, and visible focus rings.
+ * Design tokens: a clean, grouped layout (in the spirit of Apple's HIG) with
+ * colors and type borrowed from El Sol's website: deep navy as the accent,
+ * a sun yellow for small highlights, Cabinet Grotesk headings, DM Sans text.
  */
 :root {
   color-scheme: light;
-  --window: #f5f5f7;
-  --sidebar: #ececef;
+  --window: #f4f5f7;
+  --sidebar: #eaeff5;
   --surface: #ffffff;
-  --surface-2: #f9f9fb;
-  --fill: rgba(120, 120, 128, 0.12);
-  --fill-strong: rgba(120, 120, 128, 0.2);
-  --separator: rgba(60, 60, 67, 0.14);
-  --separator-strong: rgba(60, 60, 67, 0.24);
-  --label: #1d1d1f;
-  --label-2: #5f5f66;
-  --label-3: #86868b;
-  --accent: #0a7c86;
-  --accent-hover: #086a73;
-  --accent-soft: rgba(10, 124, 134, 0.1);
-  --accent-text: #08656d;
-  --focus: rgba(10, 124, 134, 0.45);
+  --surface-2: #f8f9fb;
+  --fill: rgba(20, 63, 106, 0.07);
+  --fill-strong: rgba(20, 63, 106, 0.12);
+  --separator: rgba(20, 40, 67, 0.12);
+  --separator-strong: rgba(20, 40, 67, 0.22);
+  --label: #17212b;
+  --label-2: #535c68;
+  --label-3: #7f8792;
+  --accent: #143f6a;
+  --accent-hover: #0f3256;
+  --accent-soft: rgba(20, 63, 106, 0.08);
+  --accent-text: #143f6a;
+  --focus: rgba(0, 117, 175, 0.45);
+  --sun: #ffcc32;
+  --sun-soft: rgba(255, 204, 50, 0.22);
   --green: #1f8a3b;
   --green-soft: rgba(52, 199, 89, 0.14);
   --orange: #b25000;
@@ -39,23 +41,25 @@
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
-    --window: #1c1c1e;
-    --sidebar: #232326;
-    --surface: #2a2a2d;
-    --surface-2: #242427;
-    --fill: rgba(120, 120, 128, 0.24);
-    --fill-strong: rgba(120, 120, 128, 0.36);
-    --separator: rgba(84, 84, 88, 0.6);
-    --separator-strong: rgba(110, 110, 115, 0.75);
-    --label: #f5f5f7;
-    --label-2: #b4b4ba;
-    --label-3: #8d8d93;
-    /* Darker fill so white button text keeps at least 4.5:1 contrast. */
-    --accent: #147d86;
-    --accent-hover: #198c96;
-    --accent-soft: rgba(63, 182, 191, 0.16);
-    --accent-text: #6fd0d7;
-    --focus: rgba(63, 182, 191, 0.55);
+    --window: #121a24;
+    --sidebar: #172230;
+    --surface: #1d2938;
+    --surface-2: #192433;
+    --fill: rgba(140, 170, 205, 0.14);
+    --fill-strong: rgba(140, 170, 205, 0.24);
+    --separator: rgba(120, 145, 175, 0.28);
+    --separator-strong: rgba(140, 165, 195, 0.45);
+    --label: #f2f5f8;
+    --label-2: #b2bcc8;
+    --label-3: #8894a3;
+    /* Lighter navy fill so white button text keeps at least 4.5:1 contrast. */
+    --accent: #2b6299;
+    --accent-hover: #336ea8;
+    --accent-soft: rgba(110, 165, 225, 0.16);
+    --accent-text: #9ec8f2;
+    --focus: rgba(110, 175, 235, 0.55);
+    --sun: #ffcc32;
+    --sun-soft: rgba(255, 204, 50, 0.18);
     --green: #4cd068;
     --green-soft: rgba(48, 209, 88, 0.18);
     --orange: #ffaa40;
@@ -71,7 +75,10 @@
 }
 
 @theme inline {
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-sans: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-display: "Cabinet Grotesk", "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --color-sun: var(--sun);
+  --color-sun-soft: var(--sun-soft);
   --font-mono: ui-monospace, "SF Mono", Menlo, Monaco, monospace;
   --color-window: var(--window);
   --color-sidebar: var(--sidebar);

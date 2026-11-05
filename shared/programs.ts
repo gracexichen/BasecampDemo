@@ -10,13 +10,13 @@ export const PROGRAMS: Program[] = [
     id: "housing",
     name: "Housing Assistance",
     description: "Rental assistance, eviction prevention and housing referrals.",
-    color: "#0A7C86",
+    color: "#0075AF",
   },
   {
     id: "health",
     name: "Healthcare Navigation",
     description: "Insurance enrollment, finding care and keeping appointments.",
-    color: "#3A6FD8",
+    color: "#D99A00",
   },
   {
     id: "education",
