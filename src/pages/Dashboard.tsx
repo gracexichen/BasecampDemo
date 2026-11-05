@@ -11,6 +11,7 @@ import {
   PageHeader,
   ProgramDot,
   StatusBadge,
+  cx,
   type IconName,
 } from "../components/ui";
 import { api } from "../lib/api";
@@ -30,14 +31,14 @@ export function Dashboard() {
   const records = useAsync(() => api.records(), [dataVersion]);
   const quality = useAsync(() => api.quality(), [dataVersion]);
 
-  const drafts = records.data?.filter((r) => r.status === "draft") ?? [];
-  const recent = records.data?.slice(0, 5) ?? [];
+  const totals = quality.data?.totals;
+  const recent = records.data?.slice(0, 3) ?? [];
 
   return (
     <>
       <PageHeader
         title="Dashboard"
-        subtitle="One shared way to document visits, so every program's records are consistent, complete and easy to find."
+        subtitle="One shared way to document visits across every program."
         actions={
           <ButtonLink to="/new?program=housing&template=housing-visit-note&sample=housing-eviction-notice" variant="primary" icon="compose">
             Start panel demo
@@ -45,7 +46,22 @@ export function Dashboard() {
         }
       />
 
-      <section aria-labelledby="start-heading" className="mb-6">
+      {/* Record numbers, grouped in one strip */}
+      <section
+        aria-label="Record totals"
+        className="mb-4 grid grid-cols-2 divide-separator rounded-xl border border-separator bg-surface shadow-card sm:grid-cols-4 sm:divide-x"
+      >
+        <Stat label="Saved records" value={totals?.records} />
+        <Stat label="Approved" value={totals?.approved} />
+        <Stat label="Drafts to finish" value={totals?.drafts} tone={totals?.drafts ? "orange" : undefined} />
+        <Stat
+          label="Complete approved notes"
+          value={quality.data ? percent(quality.data.completeRate) : undefined}
+          hint="Target: 4 of 5"
+        />
+      </section>
+
+      <section aria-labelledby="start-heading" className="mb-4">
         <h2 id="start-heading" className="mb-3 text-[15px] font-semibold text-label">
           Start a case note
         </h2>
@@ -78,84 +94,80 @@ export function Dashboard() {
         </div>
       </section>
 
-      <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Saved records" value={quality.data?.totals.records} />
-        <Stat label="Approved" value={quality.data?.totals.approved} />
-        <Stat label="Drafts to finish" value={quality.data?.totals.drafts} tone={drafts.length ? "orange" : undefined} />
-        <Stat
-          label="Complete approved notes"
-          value={quality.data ? percent(quality.data.completeRate) : undefined}
-          hint="PRD target: 4 of 5"
-        />
-      </div>
+      <Card
+        className="mb-4"
+        title="Recent records"
+        actions={
+          <Link to="/records" className="text-[13px] font-medium text-accent-text hover:underline">
+            See all
+          </Link>
+        }
+      >
+        {records.loading && !records.data ? (
+          <LoadingState />
+        ) : recent.length === 0 ? (
+          <EmptyState title="No records yet">Start a case note to create the first record.</EmptyState>
+        ) : (
+          <ul className="divide-y divide-separator">
+            {recent.map((r) => {
+              const t = getTemplate(r.templateId);
+              const v = t ? validateRecord(t, r.fields, r.sourceText) : null;
+              const program = PROGRAMS.find((p) => p.id === r.programId);
+              return (
+                <li key={r.id}>
+                  <Link
+                    to={r.status === "draft" ? `/records/${r.id}/review` : `/records/${r.id}`}
+                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-surface-2"
+                  >
+                    <ProgramDot color={program?.color ?? "#999"} />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[13px] font-semibold text-label">
+                        {recordTitle(r)} <span className="font-normal text-label-2">· {programName(r.programId)}</span>
+                      </p>
+                      <p className="text-[12px] text-label-3">
+                        Visit {formatDate(r.fields.visit_date?.value)} · Updated {formatDateTime(r.updatedAt)}
+                      </p>
+                    </div>
+                    {v && r.status === "draft" && v.issues.some((i) => i.severity === "error") && (
+                      <Badge tone="red" icon="warning">
+                        Needs info
+                      </Badge>
+                    )}
+                    <StatusBadge status={r.status} />
+                    <Icon name="chevronRight" className="size-3.5 text-label-3" />
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </Card>
 
-      <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-        <Card
-          title="Recent records"
-          actions={
-            <Link to="/records" className="text-[13px] font-medium text-accent-text hover:underline">
-              See all
-            </Link>
-          }
-        >
-          {records.loading && !records.data ? (
-            <LoadingState />
-          ) : recent.length === 0 ? (
-            <EmptyState title="No records yet">Start a case note to create the first record.</EmptyState>
-          ) : (
-            <ul className="divide-y divide-separator">
-              {recent.map((r) => {
-                const t = getTemplate(r.templateId);
-                const v = t ? validateRecord(t, r.fields, r.sourceText) : null;
-                const program = PROGRAMS.find((p) => p.id === r.programId);
-                return (
-                  <li key={r.id}>
-                    <Link
-                      to={r.status === "draft" ? `/records/${r.id}/review` : `/records/${r.id}`}
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-surface-2"
-                    >
-                      <ProgramDot color={program?.color ?? "#999"} />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-[13px] font-semibold text-label">
-                          {recordTitle(r)} <span className="font-normal text-label-2">· {programName(r.programId)}</span>
-                        </p>
-                        <p className="text-[12px] text-label-3">
-                          Visit {formatDate(r.fields.visit_date?.value)} · Updated {formatDateTime(r.updatedAt)}
-                        </p>
-                      </div>
-                      {v && r.status === "draft" && v.issues.some((i) => i.severity === "error") && (
-                        <Badge tone="red" icon="warning">
-                          Needs info
-                        </Badge>
-                      )}
-                      <StatusBadge status={r.status} />
-                      <Icon name="chevronRight" className="size-3.5 text-label-3" />
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </Card>
-
-        <Card title="How it works" description={effectiveMode === "live" ? "Live Claude extraction is on." : "Running in Offline demo mode."}>
-          <ol className="flex flex-col gap-3 p-4">
-            {HOW_IT_WORKS.map((s, i) => (
-              <li key={s.title} className="flex gap-3">
-                <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent-text">
-                  <Icon name={s.icon} />
-                </span>
-                <div>
-                  <p className="text-[13px] font-semibold text-label">
-                    {i + 1}. {s.title}
-                  </p>
-                  <p className="text-[13px] text-label-2">{s.text}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </Card>
-      </div>
+      {/* How it works: collapsed by default */}
+      <details className="group rounded-xl border border-separator bg-surface shadow-card">
+        <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 select-none [&::-webkit-details-marker]:hidden">
+          <Icon name="chevronRight" className="size-3.5 text-label-3 transition-transform group-open:rotate-90" />
+          <span className="text-[15px] font-semibold text-label">How it works</span>
+          <span className="ml-auto text-[12px] text-label-3">
+            {effectiveMode === "live" ? "Live Claude extraction is on" : "Offline demo mode"}
+          </span>
+        </summary>
+        <ol className="grid gap-3 border-t border-separator p-4 sm:grid-cols-2">
+          {HOW_IT_WORKS.map((s, i) => (
+            <li key={s.title} className="flex gap-3">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent-text">
+                <Icon name={s.icon} />
+              </span>
+              <div>
+                <p className="text-[13px] font-semibold text-label">
+                  {i + 1}. {s.title}
+                </p>
+                <p className="text-[13px] text-label-2">{s.text}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </details>
     </>
   );
 }
@@ -172,12 +184,14 @@ function Stat({
   tone?: "orange";
 }) {
   return (
-    <div className="rounded-xl border border-separator bg-surface px-4 py-3 shadow-card">
+    <div className="px-4 py-2.5">
       <p className="text-[12px] font-medium text-label-2">{label}</p>
-      <p className={`mt-0.5 text-[24px] font-semibold tabular-nums tracking-[-0.01em] ${tone === "orange" ? "text-orange" : "text-label"}`}>
-        {value ?? "—"}
+      <p className="flex items-baseline gap-2">
+        <span className={cx("text-[20px] font-semibold tabular-nums tracking-[-0.01em]", tone === "orange" ? "text-orange" : "text-label")}>
+          {value ?? "—"}
+        </span>
+        {hint && <span className="text-[12px] text-label-3">{hint}</span>}
       </p>
-      {hint && <p className="text-[12px] text-label-3">{hint}</p>}
     </div>
   );
 }
