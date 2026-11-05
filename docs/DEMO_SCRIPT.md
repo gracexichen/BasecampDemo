@@ -17,7 +17,7 @@ This is part 4 of the panel presentation, "The prototype". The problem and today
 |---|---|---|
 | 0 | Point at the grey banner at the top. | "Before we start: everything here is sample data our pod wrote. No El Sol client data. It runs on this laptop and isn't connected to CommHealth Tracker. *(If offline:)* We don't have an API key on this machine, so the AI step uses a pre-written result for this sample. It's labeled 'not Claude' on screen." |
 | 1 | **Dashboard.** | "Today every CHW documents their own way and saves wherever they like. This is one shared place, with the same template for everyone in a program." |
-| 2 | Click **Start panel demo**, or **New Case Note → Housing Assistance**. | "A CHW picks the program they're working in." |
+| 2 | Click **New case note**, or **New Case Note → Housing Assistance**. | "A CHW picks the program they're working in." |
 | 3 | Click **Case / Visit Note**. Point at the field list on the right. | "And the standard template. These are the fields every housing note needs. Required ones are marked." |
 | 4 | Click **Load sample note**. | "This is how notes really get written: fast, in their own words. It's a home visit with a family that got an eviction notice." |
 | 5 | Click **Standardize** (with Claude, or the offline demo). | "Claude reads the note and fills the template, and it's only allowed to use what the note says. Every value has to come with a quote from the note." |

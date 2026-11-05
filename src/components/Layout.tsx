@@ -2,7 +2,7 @@ import { NavLink, Outlet, useLocation } from "react-router";
 import { PROGRAMS } from "../../shared/programs";
 import { useAppState } from "../lib/app-state";
 import { Badge, Icon, ProgramDot, cx, type IconName } from "./ui";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 
 const NAV: { to: string; label: string; icon: IconName; end?: boolean }[] = [
   { to: "/", label: "Dashboard", icon: "home", end: true },
@@ -109,13 +109,23 @@ function Toasts() {
       {toasts.map((t) => (
         <div
           key={t.id}
-          className="fade-in pointer-events-auto flex min-w-[260px] max-w-sm items-start gap-2.5 rounded-xl border border-separator bg-surface px-3.5 py-3 shadow-raised"
+          className={cx(
+            "pointer-events-auto relative flex min-w-[260px] max-w-sm items-start gap-2.5 rounded-xl border px-3.5 py-3 shadow-raised",
+            t.tone === "celebrate" ? "pop-in border-sun bg-surface" : "fade-in border-separator bg-surface",
+          )}
           role={t.tone === "error" ? "alert" : "status"}
         >
-          <Icon
-            name={t.tone === "error" ? "warning" : t.tone === "info" ? "info" : "checkCircle"}
-            className={cx("mt-0.5 size-[18px]", t.tone === "error" ? "text-red" : t.tone === "info" ? "text-blue" : "text-green")}
-          />
+          {t.tone === "celebrate" && <Confetti />}
+          {t.tone === "celebrate" ? (
+            <span className="-my-0.5 flex size-6 items-center justify-center rounded-full bg-sun text-[#143f6a]">
+              <Icon name="sun" className="sun-spin size-4" />
+            </span>
+          ) : (
+            <Icon
+              name={t.tone === "error" ? "warning" : t.tone === "info" ? "info" : "checkCircle"}
+              className={cx("mt-0.5 size-[18px]", t.tone === "error" ? "text-red" : t.tone === "info" ? "text-blue" : "text-green")}
+            />
+          )}
           <p className="flex-1 text-[13px] text-label">{t.text}</p>
           <button
             type="button"
@@ -128,6 +138,35 @@ function Toasts() {
         </div>
       ))}
     </div>
+  );
+}
+
+const CONFETTI_COLORS = ["#ffcc32", "#143f6a", "#0075af", "#d99a00", "#8a5cc7"];
+
+/** A small one-shot burst of sun-colored confetti behind the toast icon. */
+function Confetti() {
+  return (
+    <span aria-hidden="true" className="pointer-events-none">
+      {Array.from({ length: 14 }, (_, i) => {
+        const angle = (i / 14) * Math.PI * 2;
+        const dist = 38 + (i % 3) * 14;
+        return (
+          <span
+            key={i}
+            className="confetti"
+            style={
+              {
+                background: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+                "--dx": `${Math.cos(angle) * dist}px`,
+                "--dy": `${Math.sin(angle) * dist}px`,
+                "--rot": `${(i % 2 ? 1 : -1) * (120 + i * 20)}deg`,
+                animationDelay: `${(i % 4) * 30}ms`,
+              } as CSSProperties
+            }
+          />
+        );
+      })}
+    </span>
   );
 }
 

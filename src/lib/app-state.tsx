@@ -5,7 +5,7 @@ import { api } from "./api";
 export interface Toast {
   id: number;
   text: string;
-  tone: "success" | "error" | "info";
+  tone: "success" | "error" | "info" | "celebrate";
 }
 
 interface AppState {

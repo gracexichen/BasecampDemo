@@ -1,15 +1,14 @@
+import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { PROGRAMS, getTemplate } from "../../shared/programs";
 import { validateRecord } from "../../shared/validation";
 import {
   Badge,
-  ButtonLink,
   Card,
   EmptyState,
   Icon,
   LoadingState,
-  PageHeader,
-  ProgramDot,
+  ProgressBar,
   StatusBadge,
   cx,
   type IconName,
@@ -26,6 +25,20 @@ const HOW_IT_WORKS: { icon: IconName; title: string; text: string }[] = [
   { icon: "person", title: "Staff review and approve", text: "Nothing is saved as final until a person approves it." },
 ];
 
+/** A friendly icon for each illustrative program. */
+const PROGRAM_ICONS: Record<string, IconName> = {
+  housing: "home",
+  health: "heart",
+  education: "book",
+};
+
+function greeting(now = new Date()): string {
+  const h = now.getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
+}
+
 export function Dashboard() {
   const { dataVersion, effectiveMode } = useAppState();
   const records = useAsync(() => api.records(), [dataVersion]);
@@ -36,33 +49,35 @@ export function Dashboard() {
 
   return (
     <>
-      <PageHeader
-        title="Dashboard"
-        subtitle="One shared way to document visits across every program."
-        actions={
-          <ButtonLink to="/new?program=housing&template=housing-visit-note&sample=housing-eviction-notice" variant="primary" icon="compose">
-            Start panel demo
-          </ButtonLink>
-        }
-      />
+      <Hero live={effectiveMode === "live"} drafts={totals?.drafts ?? 0} />
 
       {/* Record numbers, grouped in one strip */}
       <section
         aria-label="Record totals"
-        className="mb-4 grid grid-cols-2 divide-separator rounded-xl border border-separator bg-surface shadow-card sm:grid-cols-4 sm:divide-x"
+        className="mb-5 grid grid-cols-2 divide-separator rounded-xl border border-separator bg-surface shadow-card sm:grid-cols-4 sm:divide-x"
       >
-        <Stat label="Saved records" value={totals?.records} />
-        <Stat label="Approved" value={totals?.approved} />
-        <Stat label="Drafts to finish" value={totals?.drafts} tone={totals?.drafts ? "orange" : undefined} />
+        <Stat icon="tray" tint="accent" label="Saved records" value={totals?.records} />
+        <Stat icon="checkCircle" tint="green" label="Approved" value={totals?.approved} />
+        <Stat icon="pencil" tint="orange" label="Drafts to finish" value={totals?.drafts} highlight={!!totals?.drafts} />
         <Stat
+          icon="chart"
+          tint="sun"
           label="Complete approved notes"
           value={quality.data ? percent(quality.data.completeRate) : undefined}
           hint="Target: 4 of 5"
-        />
+        >
+          {quality.data?.completeRate != null && (
+            <ProgressBar
+              value={quality.data.completeRate}
+              tone={quality.data.completeRate >= 0.8 ? "green" : "orange"}
+              label="Complete approved notes"
+            />
+          )}
+        </Stat>
       </section>
 
-      <section aria-labelledby="start-heading" className="mb-4">
-        <h2 id="start-heading" className="mb-3 text-[15px] font-semibold text-label">
+      <section aria-labelledby="start-heading" className="mb-5">
+        <h2 id="start-heading" className="mb-3 font-display text-[18px] font-extrabold text-label">
           Start a case note
         </h2>
         <div className="grid gap-3 md:grid-cols-3">
@@ -72,20 +87,22 @@ export function Dashboard() {
               <Link
                 key={p.id}
                 to={`/new?program=${p.id}&template=${p.id}-visit-note`}
-                className="group flex flex-col rounded-xl border border-separator bg-surface p-4 shadow-card transition-colors hover:border-separator-strong hover:bg-surface-2"
+                className="lift wiggle group relative flex flex-col overflow-hidden rounded-xl border border-separator bg-surface p-4 shadow-card hover:border-separator-strong"
                 aria-label={`Start a ${p.name} case note`}
               >
-                <div className="flex items-center gap-2">
-                  <ProgramDot color={p.color} />
+                <span aria-hidden="true" className="absolute inset-x-0 top-0 h-1" style={{ background: p.color }} />
+                <div className="flex items-center gap-2.5">
+                  <ProgramTile programId={p.id} color={p.color} />
                   <span className="text-[14px] font-semibold text-label">{p.name}</span>
                 </div>
-                <p className="mt-1.5 flex-1 text-[13px] text-label-2">{p.description}</p>
+                <p className="mt-2 flex-1 text-[13px] text-label-2">{p.description}</p>
                 <div className="mt-3 flex items-center justify-between text-[12px] text-label-3">
                   <span>
                     {count} record{count === 1 ? "" : "s"}
                   </span>
                   <span className="flex items-center gap-0.5 font-medium text-accent-text">
-                    New note <Icon name="chevronRight" className="size-3.5" />
+                    New note{" "}
+                    <Icon name="chevronRight" className="size-3.5 transition-transform group-hover:translate-x-0.5" />
                   </span>
                 </div>
               </Link>
@@ -95,7 +112,7 @@ export function Dashboard() {
       </section>
 
       <Card
-        className="mb-4"
+        className="mb-5"
         title="Recent records"
         actions={
           <Link to="/records" className="text-[13px] font-medium text-accent-text hover:underline">
@@ -106,7 +123,9 @@ export function Dashboard() {
         {records.loading && !records.data ? (
           <LoadingState />
         ) : recent.length === 0 ? (
-          <EmptyState title="No records yet">Start a case note to create the first record.</EmptyState>
+          <EmptyState icon="sun" title="No records yet">
+            Start a case note to create the first record.
+          </EmptyState>
         ) : (
           <ul className="divide-y divide-separator">
             {recent.map((r) => {
@@ -117,9 +136,9 @@ export function Dashboard() {
                 <li key={r.id}>
                   <Link
                     to={r.status === "draft" ? `/records/${r.id}/review` : `/records/${r.id}`}
-                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-surface-2"
+                    className="group flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-surface-2"
                   >
-                    <ProgramDot color={program?.color ?? "#999"} />
+                    <ProgramTile programId={r.programId} color={program?.color ?? "#999"} small />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[13px] font-semibold text-label">
                         {recordTitle(r)} <span className="font-normal text-label-2">· {programName(r.programId)}</span>
@@ -134,7 +153,7 @@ export function Dashboard() {
                       </Badge>
                     )}
                     <StatusBadge status={r.status} />
-                    <Icon name="chevronRight" className="size-3.5 text-label-3" />
+                    <Icon name="chevronRight" className="size-3.5 text-label-3 transition-transform group-hover:translate-x-0.5" />
                   </Link>
                 </li>
               );
@@ -148,22 +167,19 @@ export function Dashboard() {
         <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 select-none [&::-webkit-details-marker]:hidden">
           <Icon name="chevronRight" className="size-3.5 text-label-3 transition-transform group-open:rotate-90" />
           <span className="text-[15px] font-semibold text-label">How it works</span>
-          <span className="ml-auto text-[12px] text-label-3">
-            {effectiveMode === "live" ? "Live Claude extraction is on" : "Offline demo mode"}
-          </span>
+          <span className="ml-auto text-[12px] text-label-3">4 steps, always with a person in the loop</span>
         </summary>
-        <ol className="grid gap-3 border-t border-separator p-4 sm:grid-cols-2">
+        <ol className="grid gap-3 border-t border-separator p-4 sm:grid-cols-2 lg:grid-cols-4">
           {HOW_IT_WORKS.map((s, i) => (
-            <li key={s.title} className="flex gap-3">
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent-text">
+            <li key={s.title} className="relative rounded-lg bg-surface-2 p-3 pt-4">
+              <span className="absolute -top-2 left-3 flex size-5 items-center justify-center rounded-full bg-sun text-[11px] font-bold text-[#143f6a]">
+                {i + 1}
+              </span>
+              <span className="mb-2 flex size-7 items-center justify-center rounded-lg bg-accent-soft text-accent-text">
                 <Icon name={s.icon} />
               </span>
-              <div>
-                <p className="text-[13px] font-semibold text-label">
-                  {i + 1}. {s.title}
-                </p>
-                <p className="text-[13px] text-label-2">{s.text}</p>
-              </div>
+              <p className="text-[13px] font-semibold text-label">{s.title}</p>
+              <p className="text-[13px] text-label-2">{s.text}</p>
             </li>
           ))}
         </ol>
@@ -172,26 +188,107 @@ export function Dashboard() {
   );
 }
 
+function Hero({ live, drafts }: { live: boolean; drafts: number }) {
+  return (
+    <header className="hero relative mb-5 overflow-hidden rounded-2xl px-6 py-6 text-white shadow-card sm:px-8">
+      {/* Decorative sun, a nod to El Sol */}
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 200 200"
+        className="pointer-events-none absolute -top-16 -right-10 size-[230px] text-[#ffcc32] opacity-90"
+      >
+        <g className="sun-spin" stroke="currentColor" strokeWidth="7" strokeLinecap="round">
+          {Array.from({ length: 12 }, (_, i) => (
+            <line key={i} x1="100" y1="22" x2="100" y2="44" transform={`rotate(${i * 30} 100 100)`} />
+          ))}
+        </g>
+        <circle cx="100" cy="100" r="40" fill="currentColor" />
+      </svg>
+
+      <div className="relative max-w-xl">
+        <p className="flex items-center gap-1.5 text-[13px] font-medium text-white/75">
+          {greeting()} <span aria-hidden="true">👋</span>
+        </p>
+        <h1 className="mt-1 font-display text-[32px] leading-tight font-extrabold tracking-[-0.01em]">Dashboard</h1>
+        <p className="mt-1 text-[14px] text-white/80">
+          {drafts > 0
+            ? `You have ${drafts} draft${drafts === 1 ? "" : "s"} waiting for review. Let's turn today's notes into clean records.`
+            : "Everything is approved. Let's turn today's notes into clean records."}
+        </p>
+        <div className="mt-4 flex flex-wrap items-center gap-2.5">
+          <Link
+            to="/new?program=housing&template=housing-visit-note&sample=housing-eviction-notice"
+            className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#ffcc32] px-4 text-[13px] font-semibold text-[#143f6a] shadow-card transition-transform hover:-translate-y-px hover:bg-[#ffd659]"
+          >
+            <Icon name="compose" />
+            New case note
+          </Link>
+          <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-white/12 px-3 text-[12px] font-medium text-white/90">
+            <span className={cx("size-2 rounded-full", live ? "bg-[#4cd068]" : "bg-[#ffaa40]")} aria-hidden="true" />
+            {live ? "Live Claude is on" : "Offline demo mode"}
+          </span>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function ProgramTile({ programId, color, small }: { programId: string; color: string; small?: boolean }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cx("wiggle-target flex shrink-0 items-center justify-center rounded-lg", small ? "size-7" : "size-9")}
+      style={{ background: `${color}1f`, color }}
+    >
+      <Icon name={PROGRAM_ICONS[programId] ?? "doc"} className={small ? "size-4" : "size-5"} />
+    </span>
+  );
+}
+
+const TINTS = {
+  accent: "bg-accent-soft text-accent-text",
+  green: "bg-green-soft text-green",
+  orange: "bg-orange-soft text-orange",
+  sun: "bg-sun-soft text-[#a87400] dark:text-sun",
+};
+
 function Stat({
+  icon,
+  tint,
   label,
   value,
   hint,
-  tone,
+  highlight,
+  children,
 }: {
+  icon: IconName;
+  tint: keyof typeof TINTS;
   label: string;
   value: number | string | undefined;
   hint?: string;
-  tone?: "orange";
+  highlight?: boolean;
+  children?: ReactNode;
 }) {
   return (
-    <div className="px-4 py-2.5">
-      <p className="text-[12px] font-medium text-label-2">{label}</p>
-      <p className="flex items-baseline gap-2">
-        <span className={cx("text-[20px] font-semibold tabular-nums tracking-[-0.01em]", tone === "orange" ? "text-orange" : "text-label")}>
-          {value ?? "—"}
-        </span>
-        {hint && <span className="text-[12px] text-label-3">{hint}</span>}
-      </p>
+    <div className="flex items-start gap-3 px-4 py-3">
+      <span className={cx("mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg", TINTS[tint])}>
+        <Icon name={icon} />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-[12px] font-medium text-label-2">{label}</p>
+        <p className="flex items-baseline gap-2">
+          <span
+            className={cx(
+              "font-display text-[22px] font-extrabold tabular-nums",
+              highlight ? "text-orange" : "text-label",
+            )}
+          >
+            {value ?? "—"}
+          </span>
+          {hint && <span className="text-[12px] text-label-3">{hint}</span>}
+        </p>
+        {children && <div className="mt-1">{children}</div>}
+      </div>
     </div>
   );
 }

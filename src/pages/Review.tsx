@@ -107,7 +107,7 @@ function ReviewForm({ record }: { record: CaseRecord }) {
     setSaving("approve");
     try {
       const saved = await api.approveRecord(record.id, { fields, reviewer: reviewer.trim(), attested: true });
-      toast("Record approved and saved.");
+      toast("Record approved and saved. Nice work!", "celebrate");
       navigate(`/records/${saved.id}`);
     } catch (e) {
       const serverIssues = issuesFrom(e);
