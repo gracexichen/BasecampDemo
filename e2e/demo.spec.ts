@@ -19,10 +19,12 @@ test("panel demo: housing note from dashboard to reopened record", async ({ page
   await shot(page, "01-dashboard");
 
   // 2–3. Housing Assistance → Case / Visit Note
-  await page.getByRole("link", { name: "New Case Note" }).click();
+  await page.getByRole("link", { name: "New Case Note", exact: true }).click();
   await page.getByRole("listitem").filter({ hasText: "Housing Assistance" }).click();
   await page.getByRole("button", { name: /Case \/ Visit Note/ }).click();
-  await expect(page.getByRole("heading", { name: "Case information" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Case note" })).toBeVisible();
+  await expect(page.getByLabel(/Contact type/)).toBeVisible();
+  await page.getByText("Already have a written note?").click();
 
   // 4. Load the synthetic example
   await page.getByRole("button", { name: "Load sample note" }).click();
@@ -107,6 +109,7 @@ test("quality dashboard, templates and reset", async ({ page }) => {
 
 test("live mode is unavailable without a key and says so", async ({ page }) => {
   await page.goto("/new?program=health&template=health-visit-note");
+  await page.getByText("Already have a written note?").click();
   await expect(page.getByRole("radio", { name: "Live Claude" })).toBeDisabled();
   await expect(page.getByRole("button", { name: "Standardize (offline demo)" })).toBeDisabled();
   await page.getByLabel("Case information").fill("Short");
